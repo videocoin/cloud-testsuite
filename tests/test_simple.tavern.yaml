@@ -99,8 +99,8 @@ stages:
       url: "{environment.host:s}{api_endpoints.recover:s}"
       method: POST
       json:
-       $ext:
-          function: utils:get_password_reset_body
+        $ext:
+          function: ext_functions:get_password_reset_body
           extra_kwargs: 
             pop_server: "{environment.pop_server:s}"
             test_email: "{environment.test_email:s}"
@@ -127,7 +127,7 @@ stages:
       method: POST
       json:
         $ext:
-          function: utils:get_password_reset_body
+          function: ext_functions:get_password_reset_body
           extra_kwargs: 
             pop_server: "{environment.pop_server:s}"
             test_email: "{environment.test_email:s}"
