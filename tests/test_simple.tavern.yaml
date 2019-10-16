@@ -1,9 +1,6 @@
 ---
 test_name: Signing in with valid credentials produces valid jwt token
 
-includes:
-  - !include common.yaml
-
 stages:
   - name: Sign in with valid credentials
     request:
@@ -29,9 +26,6 @@ stages:
 ---
 
 test_name: User information from token is accurate
-
-includes:
-  - !include common.yaml
 
 stages:
   - name: Get user information of signed in user
@@ -67,9 +61,6 @@ stages:
 ---
 
 test_name: Test password recovery
-
-includes:
-  - !include common.yaml
 
 stages:
   - &start_password_recovery
