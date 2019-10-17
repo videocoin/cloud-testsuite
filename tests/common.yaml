@@ -1,0 +1,34 @@
+---
+name: test includes
+description: common variables for tavern.yaml tests 
+
+variables:
+  environment:
+    support_email: 'support@videocoin.network'
+    support_subject: 'Password Recovery'
+ 
+    host: https://studio.snb.videocoin.network
+    pop_server: pop.gmail.com
+    test_email: kgoautomation@gmail.com
+    test_email_password: LivePlanet16!
+    invalid_test_email: not_a_real_email@fake.ru
+    invalid_test_password: not_a_real_password
+    test_password: tester123
+    test_password_2: tester1234
+
+  expected_results:
+    get_user_information:
+      id: d71b8961-8de3-4383-7ac0-46299d2186f5
+      email: kgoautomation@gmail.com
+      name: Kenneth Go
+      is_active: True
+      account: null
+
+  error_messages:
+    invalid_credentials: "Authentication failed"
+
+  api_endpoints:
+    auth: /api/v1/auth
+    user: /api/v1/user
+    recovery_start: /api/v1/recovery/start
+    recover: /api/v1/recover
