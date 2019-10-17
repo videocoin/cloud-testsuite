@@ -1,0 +1,73 @@
+---
+
+test_name: Signing in with non-existing email produces error
+
+stages:
+  - name: Sign in with invalid credentials
+    request:
+      url: "{environment.host:s}{api_endpoints.auth:s}"
+      method: POST
+      json:
+        email: "{test_args.invalid_test_email:s}"
+        password: "{test_args.invalid_test_password:s}"
+    response:
+      status_code: 401  
+      # body: "{error_messages.invalid_credentials}"
+      body:
+        fields: null
+        message: "Authentication failed"
+---
+
+test_name: Signing in with incorrect password produces error
+
+stages:
+  - name: Sign in with invalid credentials
+    request:
+      url: "{environment.host:s}{api_endpoints.auth:s}"
+      method: POST
+      json:
+        email: "{test_args.test_email:s}"
+        password: "{test_args.invalid_test_password:s}"
+    response:
+      status_code: 401
+      # body: "{error_messages.invalid_credentials}"
+      body:  
+        fields: null
+        message: "Authentication failed"
+
+---
+
+test_name: User information from token is accurate
+
+stages:
+  - type: ref
+    id: get_token
+  - name: Get user information of signed in user
+    request:
+      url: "{environment.host:s}{api_endpoints.user:s}"
+      method: GET
+      headers:
+        Authorization: "Bearer {test_token:s}"
+    response:
+      status_code: 200
+      body:
+        id: "{expected_results.get_user_information.id}"
+        email: "{expected_results.get_user_information.email}"
+        name: "{expected_results.get_user_information.name}"
+        # Difficulty with comparing boolean types between tavern and Python:
+        # ERROR    tavern.response.base:base.py:53 Value mismatch in body: 
+        # Type of returned data was different than expected (expected["is_active"] = 'True' (type = <class 'tavern.util.dict_util.format_keys.<locals>.InnerFormattedString'>), 
+        # actual["is_active"] = 'True' (type = <class 'bool'>))
+
+        # is_active: "{expected_results.get_user_information.is_active}"
+
+        # Difficulty with comparing None types between tavern and Python:
+        # ERROR    tavern.response.base:base.py:53 Value mismatch in body: 
+        # Type of returned data was different than expected 
+        # (expected["account"] = 'False' (type = <class 'bool'>), 
+        # actual["account"] = 'None' (type = <class 'NoneType'>))
+
+        # account: "{expected_results.get_user_information.account}"
+
+        is_active: true
+        account: null

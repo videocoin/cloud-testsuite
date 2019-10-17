@@ -16,6 +16,7 @@ def get_password_reset_body(pop_server, test_email, test_email_password, new_pas
     support_email = test_environment['support_email']
     support_subject = test_environment['support_subject']
     
+    # List of email is given in chronological ascending order
     email_count = len(pop_conn.list()[1])
     while email_count > 0:
         raw_email = b"\n".join(pop_conn.retr(email_count)[1])

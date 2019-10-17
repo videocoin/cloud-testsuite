@@ -1,0 +1,84 @@
+---
+
+test_name: Signing up with an existing email produces error
+
+stages:
+  - name: Sign up with an email that already is registered
+    request:
+      url: "{environment.host:s}{api_endpoints.sign_up:s}"
+      method: POST
+      json:
+        email: "{test_args.test_email:s}"
+        password: "{test_args.test_password:s}"
+        confirm_password: "{test_args.test_password:s}"
+        name: "{test_args.test_full_name:s}"
+    response:
+      status_code: 400
+      # body: "{error_messages.email_already_taken:s}"
+      body:
+        message: "invalid argument"
+        fields:
+          email: "Email is already registered"
+
+---
+
+test_name: Signing up with a short full name produces error
+
+stages:
+  - name: Sign up with an email that already is registered
+    request:
+      url: "{environment.host:s}{api_endpoints.sign_up:s}"
+      method: POST
+      json:
+        email: "{test_args.test_email:s}"
+        password: "{test_args.test_password:s}"
+        confirm_password: "{test_args.test_password:s}"
+        name: "{test_args.test_short_full_name:s}"
+    response:
+      status_code: 400
+      # body: "{error_messages.email_already_taken:s}"
+      body:
+        message: "invalid argument"
+        fields: 
+            name: "Name must be at least 2 characters in length"
+
+---
+
+test_name: Signing up with invalid password produces error
+
+marks:
+  - parametrize:
+      key: invalid_password
+      vals:
+        - "{test_args.invalid_password_too_short}"
+        - "{test_args.invalid_password_no_numbers}"
+        - "{test_args.invalid_password_no_letters}"
+
+stages:
+  - name: Sign up with an invalid password
+    request:
+      url: "{environment.host:s}{api_endpoints.sign_up:s}"
+      method: POST
+      json:
+        email: "{test_args.test_email:s}"
+        password: "{invalid_password:s}"
+        confirm_password: "{invalid_password:s}"
+        name: "{test_args.test_short_full_name:s}"
+    response:
+      status_code: 400
+      body:
+        message: "invalid argument"
+        fields: 
+          password: "Password must be more than 8 characters and contain both numbers and letters"
+
+
+
+
+
+
+
+
+
+
+
+

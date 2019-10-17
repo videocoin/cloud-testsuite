@@ -3,18 +3,24 @@ name: test includes
 description: common variables for tavern.yaml tests 
 
 variables:
-  environment:
+  environment:    
+    host: https://studio.snb.videocoin.network
     support_email: 'support@videocoin.network'
     support_subject: 'Password Recovery'
- 
-    host: https://studio.snb.videocoin.network
+
+  test_args: 
     pop_server: pop.gmail.com
     test_email: kgoautomation@gmail.com
     test_email_password: LivePlanet16!
+    test_full_name: Kenneth Automation
+    test_short_full_name: K
     invalid_test_email: not_a_real_email@fake.ru
     invalid_test_password: not_a_real_password
     test_password: tester123
     test_password_2: tester1234
+    invalid_password_too_short: 2short
+    invalid_password_no_numbers: nonumbers
+    invalid_password_no_letters: "1234567890"
 
   expected_results:
     get_user_information:
@@ -22,13 +28,55 @@ variables:
       email: kgoautomation@gmail.com
       name: Kenneth Go
       is_active: True
-      account: null
+      account: None
 
+  # I hope this works one day: https://github.com/taverntesting/tavern/issues/466
   error_messages:
-    invalid_credentials: "Authentication failed"
+    invalid_credentials:
+      message: "Authentication failed"
+      fields: null
+    email_already_taken:
+      message: "invalid argument"
+      fields:
+        email: "Email is already registered"
+    name_too_short:
+      message: "invalid argument"
+      fields: 
+          name: "Name must be at least 2 characters in length"
+    invalid_password:
+      message: "invalid argument"
+      fields: 
+          password: "Password must be more than 8 characters and contain both numbers and letters"
 
   api_endpoints:
     auth: /api/v1/auth
     user: /api/v1/user
     recovery_start: /api/v1/recovery/start
     recover: /api/v1/recover
+    sign_up: /api/v1/users
+
+# Saved test stage to produce token
+# TODO: Is this saved across entire test run, just the document, or is this rerun
+# for every test?
+stages:
+  - id: get_token
+    name: Sign in with valid credentials and expose token to tests
+    request:
+      url: "{environment.host:s}{api_endpoints.auth:s}"
+      method: POST
+      json:
+        email: "{test_args.test_email:s}"
+        password: "{test_args.test_password:s}"
+    response:
+      status_code: 200
+      verify_response_with:
+        function: tavern.testutils.helpers:validate_jwt
+        extra_kwargs:
+          jwt_key: "token"
+          options:
+            # Ignoring signature for now
+            verify_signature: false
+            verify_aud: false
+      save:
+        body:
+          test_token: token
