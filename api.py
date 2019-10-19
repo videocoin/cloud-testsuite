@@ -58,6 +58,14 @@ class API():
                                              parameters.get("user_id"))
         return self._perform_request('get', url, parameters, True)
 
+    def profiles(self, action, parameters=[]):
+        if action in 'list':
+            return self._list_profiles()
+
+    def _list_profiles(self):
+        url = '{}/api/v1/profiles'.format(self.api)
+        return self._perform_request('get', url)
+
     def streams(self, action, parameters=[]):
         if action in 'list':
             return self._list_streams(parameters, '', True)
