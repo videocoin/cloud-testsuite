@@ -16,6 +16,7 @@ variables:
     test_short_full_name: K
     invalid_test_email: not_a_real_email@fake.ru
     invalid_test_password: not_a_real_password
+    invalid_test_email_format: bad_email_format
     test_password: tester123
     test_password_2: tester1234
     invalid_password_too_short: 2short
