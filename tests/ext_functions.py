@@ -4,6 +4,7 @@ import quopri
 import re
 import requests
 from box import Box
+from datetime import datetime
 
 import utils
 
@@ -50,3 +51,17 @@ def get_password_reset_body(pop_server, test_email, test_email_password, new_pas
         'token': token, 
         'password': new_password,
         'confirm_password': new_password})
+
+def verify_stream_id_is_in_list(response, stream_id):
+    all_streams = response.json().get("items")
+    print(all_streams)
+    for stream in all_streams:
+        if stream['id'] == stream_id:
+            return True
+    return False
+
+def get_create_stream_body(profile_id):
+   return Box({
+        'name': datetime.now().strftime("%m-%d-%Y@%H:%M:%S %p"),
+        'profile_id': profile_id
+    })

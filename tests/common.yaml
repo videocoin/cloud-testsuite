@@ -55,6 +55,8 @@ variables:
     recovery_start: /api/v1/recovery/start
     recover: /api/v1/recover
     sign_up: /api/v1/users
+    streams: /api/v1/streams
+    profiles: /api/v1/profiles
 
 # Saved test stage to produce token
 # TODO: Is this saved across entire test run, just the document, or is this rerun

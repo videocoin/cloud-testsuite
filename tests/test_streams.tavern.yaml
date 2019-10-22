@@ -1,0 +1,65 @@
+---
+
+test_name: Creating stream with selected HLS output profile appears under streams list
+
+stages:
+  - name: Fetch ID of all available HLS output profiles
+    request: 
+      url: "{environment.host:s}{api_endpoints.profiles:s}"
+    response:
+      status_code: 200
+      save:
+        body:
+          profile_id_720p: items[0].id
+
+  - type: ref
+    id: get_token
+
+  - name: Create new stream with profile ID
+    request:
+      url: "{environment.host:s}{api_endpoints.streams:s}"      
+      method: POST
+      headers:
+        Authorization: "Bearer {test_token:s}"
+      json:
+        $ext:
+          function: ext_functions:get_create_stream_body
+          extra_kwargs:
+            profile_id: profile_id_720p 
+    response:
+      status_code: 200
+      save:
+        body:
+          recently_created_stream_id: id
+
+  - name: Verify new stream is created and listed
+    request:
+      url: "{environment.host:s}{api_endpoints.streams:s}"
+      headers:
+        Authorization: "Bearer {test_token:s}"
+    response:
+      status_code: 200
+      verify_response_with:
+        function: ext_functions:verify_stream_id_is_in_list
+        extra_kwargs:
+          stream_id: recently_created_stream_id
+
+  - name: Delete newly created stream to restore proper state to test account
+    request: 
+      url: "{environment.host}{api_endpoints.streams}/{recently_created_stream_id:s}"
+      method: DELETE
+      headers:
+        Authorization: "Bearer {test_token:s}"
+    response:
+      status_code: 200
+
+  - name: Verify state of streams on account after deletion
+    request: 
+      url: "{environment.host}{api_endpoints.streams}"
+      headers:
+        Authorization: "Bearer {test_token:s}"
+    response:
+      status_code: 200
+      body:
+        items: []
+        

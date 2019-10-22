@@ -42,6 +42,7 @@ test_name: User information from token is accurate
 stages:
   - type: ref
     id: get_token
+    
   - name: Get user information of signed in user
     request:
       url: "{environment.host:s}{api_endpoints.user:s}"
