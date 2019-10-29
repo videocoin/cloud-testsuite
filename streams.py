@@ -53,16 +53,16 @@ def main():
 
         logger.debug(s)
 
-        if s['status'] in ['STREAM_STATUS_CANCELED', 'STREAM_STATUS_PREPARED', 'STREAM_STATUS_FALED']:
+        if s['status'] in ['STREAM_STATUS_CANCELED', 'STREAM_STATUS_PREPARED', 'STREAM_STATUS_FAILED']:
             break
 
     logger.info(s)
 
-    if s['status'] in ['STREAM_STATUS_CANCELED', 'STREAM_STATUS_FALED']:
+    if s['status'] in ['STREAM_STATUS_CANCELED', 'STREAM_STATUS_FAILED']:
         logger.error('stream failed')
         return
-
-    ffmpeg_rtmp(args.input, s['rtmp_url'])
+    print(s['rtmp_url'])
+    #ffmpeg_rtmp(args.input, s['rtmp_url'])
 
 if __name__ == "__main__":
     main()
