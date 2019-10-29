@@ -3,7 +3,8 @@
 test_name: Creating stream with selected HLS output profile appears under streams list
 
 stages:
-  - name: Fetch ID of all available HLS output profiles
+  - &get_profile_ids
+    name: Fetch ID of all available HLS output profiles
     request: 
       url: "{environment.host:s}{api_endpoints.profiles:s}"
     response:
@@ -15,7 +16,8 @@ stages:
   - type: ref
     id: get_token
 
-  - name: Create new stream with profile ID
+  - &create_new_stream
+    name: Create new stream with profile ID
     request:
       url: "{environment.host:s}{api_endpoints.streams:s}"      
       method: POST
@@ -28,11 +30,19 @@ stages:
             profile_id: profile_id_720p 
     response:
       status_code: 200
+      body:
+        input_status: INPUT_STATUS_NONE
+        input_url: !anystr
+        output_url: !anystr
+        rtmp_url: !anystr
+        status: STREAM_STATUS_NEW
       save:
         body:
+          # DANGER: From the nature of YAML anchors, changing the variable name below 
+          # will break wherever the anchor and variable name for the stream ID is used
           recently_created_stream_id: id
 
-  - name: Verify new stream is created and listed
+  - name: Verify new stream is created and listed in streams/
     request:
       url: "{environment.host:s}{api_endpoints.streams:s}"
       headers:
@@ -44,7 +54,8 @@ stages:
         extra_kwargs:
           stream_id: recently_created_stream_id
 
-  - name: Delete newly created stream to restore proper state to test account
+  - &delete_stream
+    name: Delete newly created stream to restore proper state to test account
     request: 
       url: "{environment.host}{api_endpoints.streams}/{recently_created_stream_id:s}"
       method: DELETE
@@ -53,7 +64,8 @@ stages:
     response:
       status_code: 200
 
-  - name: Verify state of streams on account after deletion
+  - &verify_deletion
+    name: Verify state of streams on account after deletion
     request: 
       url: "{environment.host}{api_endpoints.streams}"
       headers:
@@ -62,4 +74,125 @@ stages:
       status_code: 200
       body:
         items: []
-        
+
+---
+
+test_name: Newly created stream data is accessible from stream/:id endpoint
+
+stages:
+  - *get_profile_ids
+
+  - type: ref
+    id: get_token
+
+  - *create_new_stream
+
+  - name: Verify new stream has all correct information from stream/:id
+    request: 
+      url: "{environment.host:s}{api_endpoints.streams:s}/{recently_created_stream_id:s}"
+      headers:
+        Authorization: "Bearer {test_token:s}"
+    response:
+      status_code: 200
+      body:
+        input_status: INPUT_STATUS_NONE
+        input_url: !anystr
+        output_url: !anystr
+        rtmp_url: !anystr
+        status: STREAM_STATUS_NEW
+        stream_contract_address: ''
+
+  - *delete_stream
+
+  - *verify_deletion
+
+---
+
+test_name: Starting stream changes status and eventually completes preparing
+
+stages:
+  - *get_profile_ids
+
+  - type: ref
+    id: get_token
+
+  - *create_new_stream
+
+  - &run_stream
+    name: Run stream
+    request:
+      url: "{environment.host:s}{api_endpoints.streams:s}/{recently_created_stream_id:s}/run"
+      method: POST
+      headers:
+        Authorization: "Bearer {test_token:s}"
+    response:
+      status_code: 200
+      body:
+        status: STREAM_STATUS_PREPARING
+        stream_contract_address: !anystr
+
+  - name: Poll until preparing completes
+    max_retries: 3
+    request:
+      url: "{environment.host:s}{api_endpoints.streams:s}/{recently_created_stream_id:s}"
+      headers:
+        Authorization: "Bearer {test_token:s}"
+    response:
+      status_code: 200
+      body:
+        status: STREAM_STATUS_PREPARED
+        stream_contract_address: !anystr
+    delay_after: 3
+
+  # TODO: There's no way to always perform a test step, even if the step before it failed...
+  # Can't find a way to do a cleanup either...
+  # This will cause the newly created stream to linger and fail _all_ other stream tests if the
+  # verification step fails
+  - *delete_stream
+
+  - *verify_deletion
+
+---
+
+test_name: Cancelling stream while the stream is preparing changes stream state to completed
+
+marks:
+  # FAILURE: Test failing from VID-142
+  - xfail
+
+stages:
+  - *get_profile_ids
+
+  - type: ref
+    id: get_token
+
+  - *create_new_stream
+
+  - *run_stream
+
+  - name: Cancel stream immediately after running
+    request:
+      url: "{environment.host:s}{api_endpoints.streams:s}/{recently_created_stream_id:s}/stop"
+      method: POST
+      headers:
+        Authorization: "Bearer {test_token:s}"
+    response:
+      status_code: 200
+      body:
+        status: STREAM_STATUS_COMPLETED
+    # Allow stop request to propagate
+    delay_after: 10
+
+  - name: Verify stream status is completed after stopping
+    request:
+      url: "{environment.host:s}{api_endpoints.streams:s}/{recently_created_stream_id:s}"
+      headers:
+        Authorization: "Bearer {test_token:s}"
+    response:
+      status_code: 200
+      body:
+        status: STREAM_STATUS_COMPLETED
+
+  - *delete_stream
+
+  - *verify_deletion
