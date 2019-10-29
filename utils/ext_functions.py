@@ -6,13 +6,13 @@ import requests
 from box import Box
 from datetime import datetime
 
-import utils
+from utils.utils import load_yaml
 
 def get_password_reset_body(pop_server, test_email, test_email_password, new_password):
     pop_conn = poplib.POP3_SSL(pop_server)
     pop_conn.user(test_email)
     pop_conn.pass_(test_email_password)
-    test_environment = utils.load_yaml('common.yaml')['variables']['environment']
+    test_environment = load_yaml('common.yaml')['variables']['environment']
 
     support_email = test_environment['support_email']
     support_subject = test_environment['support_subject']

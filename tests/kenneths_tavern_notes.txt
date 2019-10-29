@@ -1,0 +1,54 @@
+1) Using $ext in the request body replaces anything else passed in:
+
+  - name: Change password with token from recovery email
+    request:
+      url: "{environment.host:s}{api_endpoints.recover:s}"
+      method: POST
+      json:
+        # This doesn't work. confirm_password and password will be overridden by 
+        # what's returned by utils:get_password_reset_body
+        confirm_password: "{environment.test_password_2:s}"
+        password: "{environment.test_password_2:s}"
+        token:
+	        $ext:
+	          function: utils:get_password_reset_body
+	          extra_kwargs: 
+	            pop_server: "{environment.pop_server:s}"
+	            test_email: "{environment.test_email:s}"
+	            test_email_password: "{environment.test_email_password:s}"
+    response:
+      status_code: 200
+
+2) Can't save "complex" JSON objects in a file that's !include(d) and compare them to response bodies (https://github.com/taverntesting/tavern/issues/426)
+
+# In test_sign_in.tavern.yaml
+
+test_name: Signing in with incorrect password produces error
+
+stages:
+  - name: Sign in with invalid credentials
+    request:
+      url: "{environment.host:s}{api_endpoints.auth:s}"
+      method: POST
+      json:
+        email: "{environment.test_email:s}"
+        password: "{environment.invalid_test_password:s}"
+    response:
+      status_code: 401
+      body: "{error_messages.invalid_credentials}"
+
+# In common.yaml (the included file)
+
+error_messages:
+invalid_credentials: 
+  fields: null
+  message: "Authentication failed"
+
+Another possible hint that this won't work:
+"""
+The query should be defined as a JMES query (see http://jmespath.org/ for more information). In the above example, this essentially performs the operation json["thing"]["nested"][0]. This can be used to perform powerful queries on response data, but note that only ‘simple’ values like integers, strings, or float values can be saved. Trying to save a ‘block’ of data such as a JSON list or object is currently unsupported and will cause the test to fail.
+"""
+
+3) If there's a problem with the an $ext function (like bad Python syntax), it'll show as a   tavern.util.exceptions.BadSchemaError: Couldn't load ext_functions:get_password_reset_body error:
+
+E   tavern.util.exceptions.BadSchemaError: Couldn't load ext_functions:get_password_reset_body
