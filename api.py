@@ -7,8 +7,11 @@ import json
 class API():
     def __init__(self, env, verbose=False):
         self.verbose = verbose
-        self.env = env
-        self.api = 'https://%s.videocoin.network' % self.env
+        if env == 'local':
+            self.api = 'http://localhost:8080'
+        else:
+            self.env = env
+            self.api = 'https://%s.videocoin.network' % self.env
 
     def user(self, action, parameters=[]):
         if action in 'auth':
@@ -21,6 +24,10 @@ class API():
             return resp
         elif action in 'get':
             return self._get_user(parameters)
+        elif action in 'start_withdraw':
+            return self._start_withdraw(parameters)
+        elif action in 'end_withdraw':
+            return self._withdraw(parameters)
 
     def set_token(self, token):
         self._set_auth_header(token)
@@ -48,6 +55,14 @@ class API():
     def _create_user(self, parameters):
         url = '{}/api/v1/users'.format(self.api)
         return self._perform_request('post', url, parameters)
+
+    def _start_withdraw(self, parameters):
+        url = '{}/api/v1/withdraw/start'.format(self.api)
+        return self._perform_request('post', url, parameters, True)
+
+    def _withdraw(self, parameters):
+        url = '{}/api/v1/withdraw'.format(self.api)
+        return self._perform_request('post', url, parameters, True)
 
     def accounts(self, action, parameters=[]):
         if action in 'key':
