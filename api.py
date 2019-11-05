@@ -135,6 +135,15 @@ class API():
             self.api, parameters.get('id'))
         return self._perform_request('post', url, parameters, True)
 
+    def miner(self, action, parameters={}):
+        if action in 'tags':
+            return self._set_miner_tags(parameters)
+
+    def _set_miner_tags(self, parameters):
+        url = '{}/api/v1/miners/{}/tags'.format(
+            self.api, parameters.get('id'))
+        return self._perform_request('put', url, {"tags": parameters.get('tags')}, True)
+
     def _perform_request(self, method, url, parameters=None, auth=None):
         r = None
         headers = self.auth_header if auth else None

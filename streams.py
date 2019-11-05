@@ -16,6 +16,7 @@ def main():
     parser.add_argument('--username', default=os.environ.get('USERNAME', None))
     parser.add_argument('--password', default=os.environ.get('PASSWORD', None))
     parser.add_argument('--input', default='screen')
+    parser.add_argument('--client_id', default=None)
 
     args = parser.parse_args()
     if not args.username or not args.password:
@@ -25,6 +26,7 @@ def main():
 
     username = args.username
     password = args.password
+    client_id = args.client_id
 
     api.user('auth', {
         'email': username,
@@ -38,6 +40,15 @@ def main():
             'name': 'test01',
             'profile_id': pp[0]['id']
         })
+
+    if client_id:
+        m = api.miner('tags', {
+            'id': client_id,
+            'tags': [
+                {"key": "force_task_id", "value": s['id']}
+            ]
+        })
+        logger.debug(m)
 
     s = api.stream(
         'run', {
