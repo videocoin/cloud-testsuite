@@ -1,8 +1,14 @@
 import urllib.parse
 import requests
+import curlify
+import logging
 import base64
 import json
 
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(levelname)s %(message)s')
+logger = logging
 
 class API():
     def __init__(self, env, verbose=False):
@@ -94,8 +100,8 @@ class API():
             return self._delete_stream(parameters)
         elif action in 'run':
             return self._run_stream(parameters)
-        elif action in 'cancel':
-            return self._cancel_stream(parameters)
+        elif action in 'stop':
+            return self._stop_stream(parameters)
 
     def _list_streams(self, parameters, filter='', auth=False):
         url = '{}/api/v1/streams{}?{}'.format(
@@ -128,12 +134,12 @@ class API():
     def _run_stream(self, parameters):
         url = '{}/api/v1/streams/{}/run'.format(
             self.api, parameters.get('id'))
-        return self._perform_request('post', url, parameters, True)
+        return self._perform_request('post', url, None, True)
 
-    def _cancel_stream(self, parameters):
-        url = '{}/api/v1/streams/{}/cancel'.format(
+    def _stop_stream(self, parameters):
+        url = '{}/api/v1/streams/{}/stop'.format(
             self.api, parameters.get('id'))
-        return self._perform_request('post', url, parameters, True)
+        return self._perform_request('post', url, None, True)
 
     def miner(self, action, parameters={}):
         if action in 'tags':
@@ -161,7 +167,8 @@ class API():
             r = requests.delete(url, headers=headers)
 
         if self.verbose:
-            print(url, r.status_code, headers)
-            print(json.dumps(r.json(), indent=4))
+            logger.debug(curlify.to_curl(r.request))
+            logger.debug(url, r.status_code, headers)
+            logger.debug(json.dumps(r.json(), indent=4))
 
         return r.json()

@@ -12,7 +12,7 @@ logger = logging
 
 def main():
     parser = argparse.ArgumentParser(description='streams')
-    parser.add_argument('--env', default='studio.snb')
+    parser.add_argument('--env', default='studio.kili')
     parser.add_argument('--username', default=os.environ.get('USERNAME', None))
     parser.add_argument('--password', default=os.environ.get('PASSWORD', None))
     parser.add_argument('--input', default='screen')
@@ -26,6 +26,7 @@ def main():
 
     username = args.username
     password = args.password
+
     client_id = args.client_id
 
     api.user('auth', {
@@ -48,7 +49,6 @@ def main():
                 {"key": "force_task_id", "value": s['id']}
             ]
         })
-        logger.debug(m)
 
     s = api.stream(
         'run', {
@@ -67,13 +67,12 @@ def main():
         if s['status'] in ['STREAM_STATUS_CANCELED', 'STREAM_STATUS_PREPARED', 'STREAM_STATUS_FAILED']:
             break
 
-    logger.info(s)
 
     if s['status'] in ['STREAM_STATUS_CANCELED', 'STREAM_STATUS_FAILED']:
-        logger.error('stream failed')
         return
-    print(s['rtmp_url'])
-    #ffmpeg_rtmp(args.input, s['rtmp_url'])
+
+    logger.debug('stream is ready to consume data:', s['rtmp_url'])
+    ffmpeg_rtmp(args.input, s['rtmp_url'])
 
 if __name__ == "__main__":
     main()
