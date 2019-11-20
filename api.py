@@ -142,8 +142,14 @@ class API():
         return self._perform_request('post', url, None, True)
 
     def miner(self, action, parameters={}):
-        if action in 'tags':
+        if action in 'create':
+            return self._create_miner()
+        elif action in 'tags':
             return self._set_miner_tags(parameters)
+
+    def _create_miner(self):
+        url = '{}/api/v1/miners'.format(self.api)
+        return self._perform_request('post', url, None, True)
 
     def _set_miner_tags(self, parameters):
         url = '{}/api/v1/miners/{}/tags'.format(

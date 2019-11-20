@@ -3,6 +3,7 @@ from api import API
 import argparse
 import logging
 import time
+import sys
 import os
 
 logging.basicConfig(
@@ -35,6 +36,10 @@ def main():
     })
 
     pp = api.profiles('list')['items']
+
+    # pprint(api.miner('create'))
+
+    sys.exit(1)
 
     s = api.stream(
         'create', {
