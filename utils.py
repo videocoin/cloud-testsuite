@@ -14,12 +14,13 @@ def ffmpeg_rtmp(source, destination):
     cmd = ['ffmpeg', '-re', '-i', source, '-c', 'copy', '-f', 'flv', destination]
     if source == 'screen':
         cmd = [
-            'ffmpeg',
-            '-f', 'lavfi', '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100',
-            '-f', 'avfoundation', '-pix_fmt', 'uyvy422', '-i', 'Capture screen 0',
-            '-vcodec', 'libx264', '-pix_fmt', 'yuv420p', 
-            '-preset', 'medium', '-r', '30', '-g', '30', '-b:v', '2500k',
-            '-acodec', 'libmp3lame', '-ar', '44100', '-threads', '6', '-b:a', '712000', '-bufsize', '512k',
+            'ffmpeg', '-re', '-f', 'lavfi',
+            '-i', 'testsrc=rate=30',
+            '-c:v', 'libx264', '-b:v', '1600k', 
+            '-preset', 'ultrafast', '-b', '900k',
+            '-c:a', 'libfdk_aac', '-b:a', '128k',
+            '-s', '640x480', '-x264opts', 'keyint=60', 
+            '-g', '30', '-pix_fmt', 'yuv420p',
             '-f', 'flv', destination]
     
     subprocess.check_output(cmd)
