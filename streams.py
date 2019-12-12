@@ -13,7 +13,7 @@ logger = logging
 
 def main():
     parser = argparse.ArgumentParser(description='streams')
-    parser.add_argument('--env', default='studio.kili')
+    parser.add_argument('--env', default='studio.dev')
     parser.add_argument('--username', default=os.environ.get('USERNAME', None))
     parser.add_argument('--password', default=os.environ.get('PASSWORD', None))
     parser.add_argument('--input', default='screen')
@@ -39,11 +39,9 @@ def main():
 
     # pprint(api.miner('create'))
 
-    sys.exit(1)
-
     s = api.stream(
         'create', {
-            'name': 'test01',
+            'name': 'test-' + str(int(time.time())),
             'profile_id': pp[0]['id']
         })
 
