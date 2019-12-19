@@ -18,6 +18,7 @@ def main():
     parser.add_argument('--password', default=os.environ.get('PASSWORD', None))
     parser.add_argument('--input', default='screen')
     parser.add_argument('--client_id', default=None)
+    parser.add_argument('--profile', default='SD')
 
     args = parser.parse_args()
     if not args.username or not args.password:
@@ -36,13 +37,22 @@ def main():
     })
 
     pp = api.profiles('list')['items']
+    profile_id = None
+    profile = None
+    for p in pp:
+        if p['name'] == args.profile:
+            profile_id = p['id']
+            profile = p
+            break
+
+    print("Profile ", profile)
 
     # pprint(api.miner('create'))
 
     s = api.stream(
         'create', {
             'name': 'test-' + str(int(time.time())),
-            'profile_id': pp[0]['id']
+            'profile_id': profile_id
         })
 
     if client_id:
