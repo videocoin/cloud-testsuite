@@ -84,7 +84,7 @@ def main():
     if s['status'] in ['STREAM_STATUS_CANCELED', 'STREAM_STATUS_FAILED']:
         return
 
-    logger.debug('stream is ready to consume data:', s['rtmp_url'])
+    logger.debug("stream is ready to consume data: %s", s['rtmp_url'])
     ffmpeg_rtmp(args.input, s['rtmp_url'])
 
 if __name__ == "__main__":
