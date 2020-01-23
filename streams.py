@@ -19,17 +19,20 @@ def main():
     parser.add_argument('--input', default='screen')
     parser.add_argument('--client_id', default=None)
     parser.add_argument('--profile', default='SD')
+    parser.add_argument('--file', default=None)
+    parser.add_argument('--verbose', default=False)
 
     args = parser.parse_args()
     if not args.username or not args.password:
         exit(parser.print_usage())
 
-    api = API(args.env, verbose=False)
+    api = API(args.env, verbose=args.verbose)
 
     username = args.username
     password = args.password
 
     client_id = args.client_id
+    filepath = args.file
 
     api.user('auth', {
         'email': username,
@@ -47,13 +50,19 @@ def main():
 
     print("Profile ", profile)
 
-    # pprint(api.miner('create'))
+    prefix_name = 'rtmp-'
+    if filepath is not None:
+        prefix_name = 'file-'
 
-    s = api.stream(
-        'create', {
-            'name': 'test-' + str(int(time.time())),
-            'profile_id': profile_id
-        })
+    create_stream_req = {
+        'name': prefix_name + 'test-' + str(int(time.time())),
+        'profile_id': profile_id
+    }
+
+    if filepath is not None:
+        create_stream_req['input_type'] = 'INPUT_TYPE_FILE'
+
+    s = api.stream('create', create_stream_req)
 
     if client_id:
         m = api.miner('tags', {
@@ -75,17 +84,18 @@ def main():
                 'id': s['id'],
             })
 
-        logger.debug(s)
-
         if s['status'] in ['STREAM_STATUS_CANCELED', 'STREAM_STATUS_PREPARED', 'STREAM_STATUS_FAILED']:
             break
-
 
     if s['status'] in ['STREAM_STATUS_CANCELED', 'STREAM_STATUS_FAILED']:
         return
 
-    logger.debug("stream is ready to consume data: %s", s['rtmp_url'])
-    ffmpeg_rtmp(args.input, s['rtmp_url'])
+    if filepath is not None:
+        api.upload_file(filepath, s['id'])
+        api.stream('get', {'id': s['id']})
+    else:
+        logger.debug("stream is ready to consume data: %s", s['rtmp_url'])
+        ffmpeg_rtmp(args.input, s['rtmp_url'])
 
 if __name__ == "__main__":
     main()

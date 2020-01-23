@@ -156,6 +156,14 @@ class API():
             self.api, parameters.get('id'))
         return self._perform_request('put', url, {"tags": parameters.get('tags')}, True)
 
+    def upload_file(self, path, stream_id):
+        url = '{}/api/v1/upload/local/{}'.format(self.api, stream_id)
+        headers = self.auth_header
+        with open(path, 'rb') as f:
+            r = requests.post(url, files={'file': f}, headers=headers)
+            if self.verbose:
+                logger.debug(r.text)
+
     def _perform_request(self, method, url, parameters=None, auth=None):
         r = None
         headers = self.auth_header if auth else None
@@ -174,7 +182,6 @@ class API():
 
         if self.verbose:
             logger.debug(curlify.to_curl(r.request))
-            logger.debug(url, r.status_code, headers)
             logger.debug(json.dumps(r.json(), indent=4))
 
         return r.json()
