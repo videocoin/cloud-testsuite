@@ -164,6 +164,13 @@ class API():
             if self.verbose:
                 logger.debug(r.text)
 
+    def upload_url(self, file_url, stream_id):
+        url = '{}/api/v1/upload/url/{}'.format(self.api, stream_id)
+        headers = self.auth_header
+        r = requests.post(url, json={'url': file_url}, headers=headers)
+        if self.verbose:
+            logger.debug(r.text)
+
     def _perform_request(self, method, url, parameters=None, auth=None):
         r = None
         headers = self.auth_header if auth else None

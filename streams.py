@@ -20,6 +20,7 @@ def main():
     parser.add_argument('--client_id', default=None)
     parser.add_argument('--profile', default='SD')
     parser.add_argument('--file', default=None)
+    parser.add_argument('--url', default=None)
     parser.add_argument('--verbose', default=False)
 
     args = parser.parse_args()
@@ -32,7 +33,8 @@ def main():
     password = args.password
 
     client_id = args.client_id
-    filepath = args.file
+    file_path = args.file
+    file_url = args.url
 
     api.user('auth', {
         'email': username,
@@ -51,7 +53,7 @@ def main():
     print("Profile ", profile)
 
     prefix_name = 'rtmp-'
-    if filepath is not None:
+    if file_path or file_url:
         prefix_name = 'file-'
 
     create_stream_req = {
@@ -59,7 +61,7 @@ def main():
         'profile_id': profile_id
     }
 
-    if filepath is not None:
+    if file_path or file_url:
         create_stream_req['input_type'] = 'INPUT_TYPE_FILE'
 
     s = api.stream('create', create_stream_req)
@@ -90,9 +92,11 @@ def main():
     if s['status'] in ['STREAM_STATUS_CANCELED', 'STREAM_STATUS_FAILED']:
         return
 
-    if filepath is not None:
-        api.upload_file(filepath, s['id'])
+    if file_path is not None:
+        api.upload_file(file_path, s['id'])
         api.stream('get', {'id': s['id']})
+    elif file_url is not None:
+        api.upload_url(file_url, s['id'])
     else:
         logger.debug("stream is ready to consume data: %s", s['rtmp_url'])
         ffmpeg_rtmp(args.input, s['rtmp_url'])
